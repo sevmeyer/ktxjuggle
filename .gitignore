@@ -1,0 +1,14 @@
+# Ignore everything
+*
+
+# Inspect directories
+!*/
+
+# Whitelist files
+!/.gitignore
+!/*.md
+!/*.py
+!/*.txt
+!ktxjuggle/*.py
+!test/*.py
+!test/data/*.md
