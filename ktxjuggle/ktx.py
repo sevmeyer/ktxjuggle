@@ -2,6 +2,7 @@ import collections
 import io
 import json
 import logging
+import math
 
 from ktxjuggle import binary
 from ktxjuggle import opengl as gl
@@ -251,6 +252,10 @@ class Ktx:
 		if not self.isOESCPT():
 			if max(1, self.numberOfMipmapLevels) != len(self.levels):
 				logger.warning('numberOfMipmapLevels does not match actual number of levels')
+
+		maxDimension = max(self.pixelWidth, self.pixelHeight, self.pixelDepth)
+		if self.numberOfMipmapLevels > math.floor(math.log2(maxDimension)) + 1:
+			logger.warning('Too many mipmap levels')
 
 		prevKeys = set()
 		for key, value in self.metadata:
