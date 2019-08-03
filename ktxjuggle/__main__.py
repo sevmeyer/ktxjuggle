@@ -64,6 +64,7 @@ def main():
 			ktx.toJson(sys.stdout, None, inPath.stem)
 		else:
 			outPath = pathlib.Path(args.OUT)
+			outPath.parent.mkdir(parents=True, exist_ok=True)
 			if outPath.suffix == '.ktx':
 				with open(outPath, mode='wb') as outStream:
 					ktx.toBinary(outStream, args.endian)
