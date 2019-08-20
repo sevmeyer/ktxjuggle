@@ -266,8 +266,11 @@ class Ktx:
 			if key in prevKeys:
 				logger.info('metadata contains duplicate key (allowed, but weird)')
 			if key.startswith(b'KTX') or key.startswith(b'ktx'):
-				if key != b'KTXorientation':
-					logger.info('Unknown key name with reserved KTX prefix: %s', key.decode())
+				if key == b'KTXorientation':
+					if value not in (b'S=r,T=d\x00', b'S=r,T=u\x00', b'S=r,T=d,R=i\x00', b'S=r,T=u,R=o\x00'):
+						logger.info('KTXorientation uses unrecommended value: %s', binary.pctEncode(value))
+				else:
+					logger.info('Unknown key name with reserved KTX prefix: %s', binary.pctEncode(key))
 			prevKeys.add(key)
 
 		prevImageSize = 0xffffffff
