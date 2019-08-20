@@ -29,7 +29,7 @@ Byte encoding
 In JSON, the identifier and the key-value pairs
 are stored as [Percent-encoded] ASCII strings.
 Each byte is written as `%XX`, where X is a
-case independent hexadecimal digit. Printable ASCII
+case insensitive hexadecimal digit. Printable ASCII
 characters (%20 - %7E) are written directly, except
 for the percent (%25), double quote (%22), and backslash (%5C).
 
