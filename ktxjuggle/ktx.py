@@ -41,9 +41,8 @@ class Ktx:
 		ktx.identifier = reader.bytes(12)
 		ktx.endianness = reader.uint32()
 		if ktx.endianness == 0x01020304:
-			logger.info('Input is big endian and will be converted')
 			reader.endian = 'big'
-			ktx.endianness = 0x04030201
+			logger.info('Input is big endian')
 
 		ktx.glType                = reader.uint32()
 		ktx.glTypeSize            = reader.uint32()
@@ -135,12 +134,15 @@ class Ktx:
 		ktx.validate()
 		return ktx
 
-	def toBinary(self, stream, endian):
+	def toBinary(self, stream):
 		writer = binary.Writer(stream)
-		writer.endian = endian
 
 		writer.bytes(self.identifier)
 		writer.uint32(self.endianness)
+		if self.endianness == 0x01020304:
+			writer.endian = 'big'
+			logger.info('Output is big endian')
+
 		writer.uint32(self.glType)
 		writer.uint32(self.glTypeSize)
 		writer.uint32(self.glFormat)
@@ -231,7 +233,7 @@ class Ktx:
 		if self.identifier != Ktx.IDENTIFIER:
 			logger.warning('Invalid identifier')
 
-		if self.endianness != 0x04030201:
+		if self.endianness != 0x04030201 and self.endianness != 0x01020304:
 			logger.warning('Invalid endianness')
 
 		if self.glTypeSize == 0:

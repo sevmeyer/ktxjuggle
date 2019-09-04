@@ -11,7 +11,7 @@ even if it is nonsensical. Any detected nonsense is logged to stderr.
 Usage
 -----
 
-    ktxjuggle [--help] [--version] [--endian STR] [--log-level STR] IN [OUT]
+    ktxjuggle [--help] [--version] [--log-level STR] IN [OUT]
 
 If the output argument is omitted, then JSON
 is printed to stdout and no files are written.
@@ -37,10 +37,10 @@ for the percent (%25), double quote (%22), and backslash (%5C).
 Endianness
 ----------
 
-Binary files are read and written in little endian by default.
-KTX input files are automatically converted to little endian
-when the endianness marker is equal to `0x01020304`.
-To write a big endian KTX file, use the option `--endian big`.
+Binary files are little endian by default.
+If the endianness marker is equal to `0x01020304`
+(little endian byte sequence 0x04 0x03 0x02 0x01),
+then a KTX file is read and written in big endian.
 
 Note that little endian is mandatory for [KTX2].
 

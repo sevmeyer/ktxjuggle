@@ -27,13 +27,6 @@ def main():
 		action='version',
 		version=ktxjuggle.__version__)
 	parser.add_argument(
-		'--endian',
-		type=str,
-		metavar='STR',
-		choices=['little', 'big'],
-		default='little',
-		help='set endian of KTX output to <little> or big')
-	parser.add_argument(
 		'--log-level',
 		type=str,
 		metavar='STR',
@@ -67,7 +60,7 @@ def main():
 			outPath.parent.mkdir(parents=True, exist_ok=True)
 			if outPath.suffix == '.ktx':
 				with open(outPath, mode='wb') as outStream:
-					ktx.toBinary(outStream, args.endian)
+					ktx.toBinary(outStream)
 			elif outPath.suffix == '.json':
 				with open(outPath, mode='w') as outStream:
 					ktx.toJson(outStream, outPath.parent, outPath.stem)
