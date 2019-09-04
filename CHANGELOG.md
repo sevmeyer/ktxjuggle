@@ -2,6 +2,8 @@
 
 - Automatically converts to big endian if marker is 0x01020304.
 - Removed --endian option.
+- Can now read JSON without "metadata" or "levels".
+- Does not write empty "metadata" or "levels" to JSON.
 
 ## 0.2.0 (2019-08-20)
 

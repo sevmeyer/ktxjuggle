@@ -30,8 +30,8 @@ class Ktx:
 		self.numberOfFaces         = None
 		self.numberOfMipmapLevels  = None
 		self.bytesOfKeyValueData   = None
-		self.metadata              = None  # [(bytes, bytes)]
-		self.levels                = None  # [(int, [bytes])]
+		self.metadata              = []  # [(bytes, bytes)]
+		self.levels                = []  # [(int, [bytes])]
 
 	@classmethod
 	def fromBinary(cls, stream):
@@ -57,7 +57,6 @@ class Ktx:
 		ktx.numberOfMipmapLevels  = reader.uint32()
 		ktx.bytesOfKeyValueData   = reader.uint32()
 
-		ktx.metadata = []
 		metaBytes  = reader.bytes(ktx.bytesOfKeyValueData)
 		metaStream = io.BytesIO(metaBytes)
 		metaReader = binary.Reader(metaStream)
@@ -76,7 +75,6 @@ class Ktx:
 				logger.warning('keyAndValueByteSize overruns bytesOfKeyValueData')
 				break
 
-		ktx.levels = []
 		levelCount = ktx.numberOfMipmapLevels
 		if levelCount == 0 or ktx.isOESCPT():
 			levelCount = 1
@@ -119,17 +117,17 @@ class Ktx:
 		ktx.numberOfMipmapLevels  = int(header['numberOfMipmapLevels'])
 		ktx.bytesOfKeyValueData   = int(header['bytesOfKeyValueData'])
 
-		ktx.metadata = []
-		for key, value in js['metadata'].items():
-			ktx.metadata.append((binary.pctDecode(key), binary.pctDecode(value)))
+		if 'metadata' in js:
+			for key, value in js['metadata'].items():
+				ktx.metadata.append((binary.pctDecode(key), binary.pctDecode(value)))
 
-		ktx.levels = []
-		for level in js['levels']:
-			imageSize = int(level['imageSize'])
-			images = []
-			for image in level['images']:
-				images.append(imageDir.joinpath(image).read_bytes())
-			ktx.levels.append((imageSize, images))
+		if 'levels' in js:
+			for level in js['levels']:
+				imageSize = int(level['imageSize'])
+				images = []
+				for image in level['images']:
+					images.append(imageDir.joinpath(image).read_bytes())
+				ktx.levels.append((imageSize, images))
 
 		ktx.validate()
 		return ktx
@@ -169,29 +167,6 @@ class Ktx:
 				writer.align(4)
 
 	def toJson(self, stream, imageDir, imageStem):
-		metadata = ''
-		for key, value in self.metadata:
-			metadata += ',\n' if metadata else '\n'
-			metadata += f'    "{binary.pctEncode(key)}": "{binary.pctEncode(value)}"'
-
-		levels = ''
-		maxSizeLen = len(str(max(self.levels)[0])) if self.levels else 1
-		for mip, (imageSize, images) in enumerate(self.levels):
-			levels += ',\n' if levels else '\n'
-			levels += f'    {{"imageSize": {imageSize: >{maxSizeLen}}, "images": ['
-			for face, image in enumerate(images):
-				if len(images) == 1:
-					name = f'{imageStem}.{mip}.bin'
-				else:
-					name = f'{imageStem}.{mip}.{face}.bin'
-					levels += ',\n      ' if face > 0 else '\n      '
-				levels += f'"{name}"'
-
-				# Binary image files
-				if imageDir:
-					imageDir.joinpath(name).write_bytes(image)
-			levels += ']}'
-
 		stream.write(
 			f'{{\n'
 			f'  "format": "KTX 11",\n'
@@ -210,12 +185,38 @@ class Ktx:
 			f'    "numberOfFaces":         {self.numberOfFaces},\n'
 			f'    "numberOfMipmapLevels":  {self.numberOfMipmapLevels},\n'
 			f'    "bytesOfKeyValueData":   {self.bytesOfKeyValueData}\n'
-			f'  }},\n'
-			f'  "metadata": {{{metadata}\n'
-			f'  }},\n'
-			f'  "levels": [{levels}\n'
-			f'  ]\n'
-			f'}}\n')
+			f'  }}')
+
+		if self.metadata:
+			stream.write(',\n  "metadata": {')
+			for i, (key, value) in enumerate(self.metadata):
+				stream.write(',\n' if i > 0 else '\n')
+				stream.write(f'    "{binary.pctEncode(key)}": "{binary.pctEncode(value)}"')
+			stream.write('\n  }')
+
+		if self.levels:
+			stream.write(',\n  "levels": [')
+			maxSizeLen = len(str(max(self.levels)[0]))
+			for mip, (imageSize, images) in enumerate(self.levels):
+				stream.write(',\n' if mip > 0 else '\n')
+				stream.write(f'    {{"imageSize": {imageSize: >{maxSizeLen}}, "images": [')
+				for face, image in enumerate(images):
+					if len(images) == 1:
+						name = f'{imageStem}.{mip}.bin'
+					else:
+						name = f'{imageStem}.{mip}.{face}.bin'
+						stream.write(',\n      ' if face > 0 else '\n      ')
+					stream.write(f'"{name}"')
+
+					# Write binary image file
+					if imageDir:
+						imageDir.joinpath(name).write_bytes(image)
+
+				stream.write(']}')
+			stream.write('\n  ]')
+
+		stream.write('\n')
+		stream.write('}\n')
 
 	# Helpers
 
@@ -258,6 +259,11 @@ class Ktx:
 		maxDimension = max(self.pixelWidth, self.pixelHeight, self.pixelDepth)
 		if self.numberOfMipmapLevels > math.floor(math.log2(maxDimension)) + 1:
 			logger.warning('Too many mipmap levels')
+
+		if self.bytesOfKeyValueData == 0 and self.metadata:
+			logger.warning('bytesOfKeyValueData should not be 0 because there is metadata')
+		if self.bytesOfKeyValueData != 0 and not self.metadata:
+			logger.warning('bytesOfKeyValueData should be 0 because there is no metadata')
 
 		prevKeys = set()
 		for key, value in self.metadata:
