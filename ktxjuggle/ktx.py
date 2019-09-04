@@ -101,6 +101,9 @@ class Ktx:
 		ktx = cls()
 		js = json.load(stream, object_pairs_hook=collections.OrderedDict)
 
+		if js['format'] != "KTX 11":
+			raise ValueError('Unkown format: ' + js['format'])
+
 		header = js['header']
 		ktx.identifier            = binary.pctDecode(header['identifier'])
 		ktx.endianness            = int(header['endianness'], 0)
