@@ -18,8 +18,8 @@ class Reader:
 		if self.endian == 'big' and wordSize > 1:
 			b = bytearray()
 			for _ in range(size // wordSize):
-				b.append(reversed(self.stream.read(wordSize)))
-			b.append(reversed(self.stream.read(size % wordSize)))
+				b.extend(reversed(self.stream.read(wordSize)))
+			b.extend(reversed(self.stream.read(size % wordSize)))
 		else:
 			b = self.stream.read(size)
 
@@ -44,7 +44,7 @@ class Writer:
 	def bytes(self, b, wordSize=1):
 		if self.endian == 'big' and wordSize > 1:
 			for i in range(0, len(b), wordSize):
-				self.stream.write(reversed(b[i:i+wordSize]))
+				self.stream.write(bytes(reversed(b[i:i+wordSize])))
 		else:
 			self.stream.write(b)
 
