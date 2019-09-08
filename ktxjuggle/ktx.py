@@ -121,7 +121,7 @@ class Ktx:
 		ktx.bytesOfKeyValueData   = int(header['bytesOfKeyValueData'])
 
 		if 'metadata' in js:
-			for key, value in js['metadata'].items():
+			for key, value in js['metadata']:
 				ktx.metadata.append((binary.pctDecode(key), binary.pctDecode(value)))
 
 		if 'levels' in js:
@@ -191,11 +191,11 @@ class Ktx:
 			f'  }}')
 
 		if self.metadata:
-			stream.write(',\n  "metadata": {')
+			stream.write(',\n  "metadata": [')
 			for i, (key, value) in enumerate(self.metadata):
 				stream.write(',\n' if i > 0 else '\n')
-				stream.write(f'    "{binary.pctEncode(key)}": "{binary.pctEncode(value)}"')
-			stream.write('\n  }')
+				stream.write(f'    ["{binary.pctEncode(key)}", "{binary.pctEncode(value)}"]')
+			stream.write('\n  ]')
 
 		if self.levels:
 			stream.write(',\n  "levels": [')
