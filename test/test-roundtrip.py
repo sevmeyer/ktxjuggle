@@ -16,8 +16,8 @@ TARGET_DIR   = pathlib.Path('temp/roundtrip')
 
 def testKtxRoundtrip(source, target):
 	json = target.with_suffix('.json')
-	subprocess.run([EXECUTABLE, '--log-level=WARNING', source, json])
-	subprocess.run([EXECUTABLE, '--log-level=WARNING', json, target])
+	subprocess.run([EXECUTABLE, '--log=WARNING', source, json])
+	subprocess.run([EXECUTABLE, '--log=WARNING', json, target])
 	return filecmp.cmp(source, target)
 
 

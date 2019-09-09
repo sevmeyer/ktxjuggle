@@ -27,12 +27,12 @@ def main():
 		action='version',
 		version=ktxjuggle.__version__)
 	parser.add_argument(
-		'--log-level',
+		'--log',
 		type=str,
 		metavar='STR',
 		choices=['DEBUG', 'WARNING', 'ERROR', 'OFF'],
 		default='DEBUG',
-		help='set log level to <DEBUG>, WARNING, ERROR, or OFF')
+		help='set log level to DEBUG,WARNING,ERROR,OFF (default: DEBUG)')
 	parser.add_argument(
 		'--inline',
 		type=int,
@@ -43,8 +43,8 @@ def main():
 	parser.add_argument('OUT', nargs='?', default='', help='output file name')
 	args = parser.parse_args()
 
-	if args.log_level != 'OFF':
-		logging.basicConfig(format='%(levelname)s: %(message)s', level=args.log_level)
+	if args.log != 'OFF':
+		logging.basicConfig(format='%(levelname)s: %(message)s', level=args.log)
 
 	try:
 		# Input
