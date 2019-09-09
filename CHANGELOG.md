@@ -5,6 +5,7 @@
 - Can now read JSON without "metadata" or "levels".
 - Does not write empty "metadata" or "levels" to JSON.
 - Switched from dict to array for "metadata", to preserve order and duplicates.
+- Small or repetitive images are inlined in JSON as percent-encoded strings.
 
 ## 0.2.0 (2019-08-20)
 

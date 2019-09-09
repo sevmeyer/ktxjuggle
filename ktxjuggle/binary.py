@@ -79,3 +79,37 @@ def pctDecode(string):
 		else:
 			raise ValueError('Invalid byte string encoding: ' + string)
 	return bytes(binary)
+
+
+def findPattern(b, maxLength):
+	for length in range(1, maxLength + 1):
+		if len(b) % length == 0:
+			pattern = b[0:length]
+			for offset in range(length, len(b), length):
+				if b[offset:offset + length] != pattern:
+					pattern = None
+					break
+			if pattern:
+				return pattern
+	return None
+
+
+def nameToBytes(size, name, directory):
+	if name.startswith('%'):
+		pattern = pctDecode(name)
+		repeats = size // len(pattern)
+		if len(pattern)*repeats != size:
+			raise ValueError('Pattern does not fit into image size: ' + name)
+		return pattern * repeats
+	else:
+		return directory.joinpath(name).read_bytes()
+
+
+def bytesToName(b, name, directory, maxInline):
+	pattern = findPattern(b, maxInline)
+	if pattern:
+		return pctEncode(pattern, allowPrintable=False)
+	else:
+		if directory:
+			directory.joinpath(name).write_bytes(b)
+		return name

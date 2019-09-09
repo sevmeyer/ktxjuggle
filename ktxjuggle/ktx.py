@@ -128,8 +128,8 @@ class Ktx:
 			for level in js['levels']:
 				imageSize = int(level['imageSize'])
 				images = []
-				for image in level['images']:
-					images.append(imageDir.joinpath(image).read_bytes())
+				for imageName in level['images']:
+					images.append(binary.nameToBytes(imageSize, imageName, imageDir))
 				ktx.levels.append((imageSize, images))
 
 		ktx.validate()
@@ -169,7 +169,7 @@ class Ktx:
 				writer.bytes(image, self.glTypeSize)
 				writer.align(4)
 
-	def toJson(self, stream, imageDir, imageStem):
+	def toJson(self, stream, imageDir, imageStem, maxInline):
 		stream.write(
 			f'{{\n'
 			f'  "format": "KTX 11",\n'
@@ -209,12 +209,7 @@ class Ktx:
 					else:
 						name = f'{imageStem}.{mip}.{face}.bin'
 						stream.write(',\n      ' if face > 0 else '\n      ')
-					stream.write(f'"{name}"')
-
-					# Write binary image file
-					if imageDir:
-						imageDir.joinpath(name).write_bytes(image)
-
+					stream.write(f'"{binary.bytesToName(image, name, imageDir, maxInline)}"')
 				stream.write(']}')
 			stream.write('\n  ]')
 

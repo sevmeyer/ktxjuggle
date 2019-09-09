@@ -11,16 +11,15 @@ even if it is nonsensical. Any detected nonsense is logged to stderr.
 Usage
 -----
 
-    ktxjuggle [--help] [--version] [--log-level STR] IN [OUT]
+    ktxjuggle --help            # Show available options
+    ktxjuggle foo.ktx           # Print JSON to stdout
+    ktxjuggle foo.ktx bar.json  # Write JSON file
+    ktxjuggle bar.json qux.ktx  # Write KTX file
 
 If the output argument is omitted, then JSON
 is printed to stdout and no files are written.
 If the output file is JSON, then the pixel data
 is written to separate binary files.
-
-    ktxjuggle foo.ktx           # Print JSON to stdout
-    ktxjuggle foo.ktx bar.json  # Write JSON file
-    ktxjuggle bar.json qux.ktx  # Write KTX file
 
 
 Byte encoding
@@ -32,6 +31,10 @@ Each byte is written as `%XX`, where X is a
 case insensitive hexadecimal digit. Printable ASCII
 characters (%20 - %7E) are written directly, except
 for the percent (%25), double quote (%22), and backslash (%5C).
+
+If an image consists of a short repeating byte pattern,
+it is inlined in JSON as a percent-encoded string.
+This can be turned off with `--inline 0`.
 
 
 Endianness

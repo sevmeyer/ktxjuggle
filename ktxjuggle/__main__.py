@@ -33,6 +33,12 @@ def main():
 		choices=['DEBUG', 'WARNING', 'ERROR', 'OFF'],
 		default='DEBUG',
 		help='set log level to <DEBUG>, WARNING, ERROR, or OFF')
+	parser.add_argument(
+		'--inline',
+		type=int,
+		metavar='INT',
+		default=16,
+		help='max length of inlined image pattern (default: 16)')
 	parser.add_argument('IN', help='input file name')
 	parser.add_argument('OUT', nargs='?', default='', help='output file name')
 	args = parser.parse_args()
@@ -54,7 +60,7 @@ def main():
 
 		# Output
 		if not args.OUT:
-			ktx.toJson(sys.stdout, None, inPath.stem)
+			ktx.toJson(sys.stdout, None, inPath.stem, args.inline)
 		else:
 			outPath = pathlib.Path(args.OUT)
 			outPath.parent.mkdir(parents=True, exist_ok=True)
@@ -63,7 +69,7 @@ def main():
 					ktx.toBinary(outStream)
 			elif outPath.suffix == '.json':
 				with open(outPath, mode='w') as outStream:
-					ktx.toJson(outStream, outPath.parent, outPath.stem)
+					ktx.toJson(outStream, outPath.parent, outPath.stem, args.inline)
 			else:
 				raise ValueError('Output file must be .ktx or .json')
 	except Exception as e:
