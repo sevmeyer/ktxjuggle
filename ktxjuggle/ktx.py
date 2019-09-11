@@ -252,11 +252,12 @@ class Ktx:
 
 		if not self.isOESCPT():
 			if max(1, self.numberOfMipmapLevels) != len(self.levels):
-				logger.warning('numberOfMipmapLevels does not match actual number of levels')
+				logger.warning('numberOfMipmapLevels does not match included number of levels')
 
 		maxDimension = max(self.pixelWidth, self.pixelHeight, self.pixelDepth)
-		if self.numberOfMipmapLevels > math.floor(math.log2(maxDimension)) + 1:
-			logger.warning('Too many mipmap levels')
+		maxLevel = math.floor(math.log2(maxDimension)) + 1 if maxDimension > 0 else 1
+		if self.numberOfMipmapLevels > maxLevel:
+			logger.warning('numberOfMipmapLevels is too big')
 
 		if self.bytesOfKeyValueData == 0 and self.metadata:
 			logger.warning('bytesOfKeyValueData should not be 0 because there is metadata')
