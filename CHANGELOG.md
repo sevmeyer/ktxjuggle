@@ -1,5 +1,9 @@
 ## Unreleased
 
+- None.
+
+## 0.3.0 (2019-09-12)
+
 - Automatically converts to big endian if marker is "0x01020304".
 - Removed --endian option.
 - Can now read JSON without "metadata" or "levels".
