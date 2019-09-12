@@ -282,8 +282,13 @@ class Ktx:
 
 		prevImageSize = 0xffffffff
 		for imageSize, images in self.levels:
-			if self.numberOfFaces != len(images):
-				logger.warning('number of images in mipmap layer does not match numberOfFaces')
+			if self.isNonArrayCubemap():
+				if len(images) != 6:
+					logger.warning('Number of images in mipmap layer does not match numberOfFaces')
+			else:
+				if len(images) != 1:
+					logger.warning('Every mipmap layer should have exactly one image')
+
 			if imageSize > prevImageSize:
 				logger.warning('imageSize should be in decreasing order')
 			for image in images:
