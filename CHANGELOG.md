@@ -1,6 +1,6 @@
 ## Unreleased
 
-- None.
+- Writes exactly bytesOfKeyValueData bytes, truncated or padded if necessary.
 
 ## 0.3.0 (2019-09-12)
 

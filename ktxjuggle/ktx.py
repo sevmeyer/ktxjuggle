@@ -64,6 +64,9 @@ class Ktx:
 		while metaReader:
 			try:
 				keyAndValueByteSize = metaReader.uint32()
+				if keyAndValueByteSize == 0:
+					logger.warning('keyAndValueByteSize is 0')
+					break
 				keyAndValue = metaReader.bytes(keyAndValueByteSize)
 				metaReader.align(4)
 				if b'\0' in keyAndValue:
@@ -157,11 +160,19 @@ class Ktx:
 		writer.uint32(self.numberOfMipmapLevels)
 		writer.uint32(self.bytesOfKeyValueData)
 
+		metaStream = io.BytesIO()
+		metaWriter = binary.Writer(metaStream)
+		metaWriter.endian = writer.endian
 		for key, value in self.metadata:
 			keyAndValue = key + b'\0' + value
-			writer.uint32(len(keyAndValue))
-			writer.bytes(keyAndValue)
-			writer.align(4)
+			metaWriter.uint32(len(keyAndValue))
+			metaWriter.bytes(keyAndValue)
+			metaWriter.align(4)
+
+		metaBytes = metaStream.getvalue()
+		metaSized = bytearray(self.bytesOfKeyValueData)
+		metaSized[:len(metaBytes)] = metaBytes[:len(metaSized)]
+		writer.bytes(metaSized)
 
 		for imageSize, images in self.levels:
 			writer.uint32(imageSize)
@@ -259,26 +270,31 @@ class Ktx:
 		if self.numberOfMipmapLevels > maxLevel:
 			logger.warning('numberOfMipmapLevels is too big')
 
-		if self.bytesOfKeyValueData == 0 and self.metadata:
-			logger.warning('bytesOfKeyValueData should not be 0 because there is metadata')
-		if self.bytesOfKeyValueData != 0 and not self.metadata:
-			logger.warning('bytesOfKeyValueData should be 0 because there is no metadata')
-
-		prevKeys = set()
+		metaKeys = set()
+		metaStream = io.BytesIO()
+		metaWriter = binary.Writer(metaStream)
 		for key, value in self.metadata:
 			if not key:
 				logger.info('metadata contains empty key (allowed, but weird)')
 			if not value:
 				logger.info('metadata contains empty value (allowed, but weird)')
-			if key in prevKeys:
+			if key in metaKeys:
 				logger.info('metadata contains duplicate key (allowed, but weird)')
+			if key.startswith(b'\xEF\xBB\xBF'):
+				logger.warning('metadata key must not start with UTF-8 BOM')
 			if key.startswith(b'KTX') or key.startswith(b'ktx'):
 				if key == b'KTXorientation':
 					if value not in (b'S=r,T=d\x00', b'S=r,T=u\x00', b'S=r,T=d,R=i\x00', b'S=r,T=u,R=o\x00'):
 						logger.info('KTXorientation uses unrecommended value: %s', binary.pctEncode(value))
 				else:
 					logger.info('Unknown key name with reserved KTX prefix: %s', binary.pctEncode(key))
-			prevKeys.add(key)
+			keyAndValue = key + b'\0' + value
+			metaWriter.uint32(len(keyAndValue))
+			metaWriter.bytes(keyAndValue)
+			metaWriter.align(4)
+			metaKeys.add(key)
+		if self.bytesOfKeyValueData != len(metaStream.getvalue()):
+			logger.warning('bytesOfKeyValueData does not match the metadata content')
 
 		prevImageSize = 0xffffffff
 		for imageSize, images in self.levels:
