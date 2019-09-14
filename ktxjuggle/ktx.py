@@ -34,7 +34,7 @@ class Ktx:
 		self.levels                = []  # [(int, [bytes])]
 
 	@classmethod
-	def fromBinary(cls, stream):
+	def fromBinary(cls, stream, isAligned=True):
 		ktx = cls()
 		reader = binary.Reader(stream)
 
@@ -68,7 +68,8 @@ class Ktx:
 					logger.warning('keyAndValueByteSize is 0')
 					break
 				keyAndValue = metaReader.bytes(keyAndValueByteSize)
-				metaReader.align(4)
+				if isAligned:
+					metaReader.align(4)
 				if b'\0' in keyAndValue:
 					key, value = keyAndValue.split(b'\0', maxsplit=1)
 					ktx.metadata.append((key, value))
@@ -87,7 +88,8 @@ class Ktx:
 				images = []
 				for face in range(6 if ktx.isNonArrayCubemap() else 1):
 					images.append(reader.bytes(imageSize, ktx.glTypeSize))
-					reader.align(4)
+					if isAligned:
+						reader.align(4)
 				ktx.levels.append((imageSize, images))
 			except EOFError:
 				logger.warning('Unexpected EOF while reading image data')
@@ -138,7 +140,7 @@ class Ktx:
 		ktx.validate()
 		return ktx
 
-	def toBinary(self, stream):
+	def toBinary(self, stream, isAligned=True):
 		writer = binary.Writer(stream)
 
 		writer.bytes(self.identifier)
@@ -167,7 +169,8 @@ class Ktx:
 			keyAndValue = key + b'\0' + value
 			metaWriter.uint32(len(keyAndValue))
 			metaWriter.bytes(keyAndValue)
-			metaWriter.align(4)
+			if isAligned:
+				metaWriter.align(4)
 
 		metaBytes = metaStream.getvalue()
 		metaSized = bytearray(self.bytesOfKeyValueData)
@@ -178,7 +181,8 @@ class Ktx:
 			writer.uint32(imageSize)
 			for image in images:
 				writer.bytes(image, self.glTypeSize)
-				writer.align(4)
+				if isAligned:
+					writer.align(4)
 
 	def toJson(self, stream, imageDir, imageStem, maxInline):
 		stream.write(

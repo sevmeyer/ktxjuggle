@@ -39,6 +39,11 @@ def main():
 		metavar='INT',
 		default=16,
 		help='max length of inlined image pattern (default: 16)')
+	parser.add_argument(
+		'--noalign',
+		action='store_true',
+		default=False,
+		help='do not align metadata and images')
 	parser.add_argument('IN', help='input file name')
 	parser.add_argument('OUT', nargs='?', default='', help='output file name')
 	args = parser.parse_args()
@@ -51,7 +56,7 @@ def main():
 		inPath = pathlib.Path(args.IN)
 		if inPath.suffix == '.ktx':
 			with open(inPath, mode='rb') as inStream:
-				ktx = ktxjuggle.Ktx.fromBinary(inStream)
+				ktx = ktxjuggle.Ktx.fromBinary(inStream, not args.noalign)
 		elif inPath.suffix == '.json':
 			with open(inPath, mode='r') as inStream:
 				ktx = ktxjuggle.Ktx.fromJson(inStream, inPath.parent)
@@ -66,7 +71,7 @@ def main():
 			outPath.parent.mkdir(parents=True, exist_ok=True)
 			if outPath.suffix == '.ktx':
 				with open(outPath, mode='wb') as outStream:
-					ktx.toBinary(outStream)
+					ktx.toBinary(outStream, not args.noalign)
 			elif outPath.suffix == '.json':
 				with open(outPath, mode='w') as outStream:
 					ktx.toJson(outStream, outPath.parent, outPath.stem, args.inline)

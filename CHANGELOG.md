@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Writes exactly bytesOfKeyValueData bytes, truncated or padded if necessary.
+- Added --noalign option to disable the padding of metadata and images.
 
 ## 0.3.0 (2019-09-12)
 
